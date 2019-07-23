@@ -225,3 +225,12 @@ def u_eval(core_instance, val):
                 if rv:
                     val = val.replace(v, str(rv))
     return int(eval(val))
+
+def u16(x):
+    return struct.unpack("<H", x)[0]
+
+def u32(x):
+    return struct.unpack("<I", x)[0]
+
+def u64(x):
+    return struct.unpack("<Q", x)[0]

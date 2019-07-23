@@ -179,16 +179,31 @@ class Memory(AbstractUnicornDbgModule):
     def read(self, func_name, *args):
         off = utils.u_eval(self.core_instance, args[0])
         lent = utils.u_eval(self.core_instance, args[1])
-        format = 'h'
+        format = 'd'
         if len(args) > 2:
             format = args[2]
         b = self.core_instance.get_emu_instance().mem_read(off, lent)
-        if format == 'h':
-            hexdump(b)
+        if format in ['b', 'w', 'd', 'q']:
+            if format == 'b':
+                hexdump(b)
+                return
+            elif format == 'd':
+                unpack = utils.u32
+                chunk_sz = 4
+            elif format == 'w':
+                unpack = utils.u16
+                chunk_sz = 2
+            elif format == 'q':
+                unpack = utils.u64
+                chunk_sz = 8
+
+            for i in range(0, lent, chunk_sz):
+                val = unpack(b[i:i+chunk_sz])
+                print("0x%08x:\t%0*x" % (off + i, chunk_sz * 2, val))
         elif format == 'i':
             cs = self.core_instance.get_cs_instance()
             for i in cs.disasm(bytes(b), off):
-                print("0x%x:\t%s\t%s" % (i.address, i.mnemonic, i.op_str))
+                print("0x%08x:\t%s\t%s" % (i.address, i.mnemonic, i.op_str))
         else:
             print('format invalid. Please use a valid format:')
             print("\t" + 'h: hex')
